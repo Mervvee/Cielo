@@ -1,74 +1,114 @@
-import React from 'react';
-import { View, Text, TextInput, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
-//import { styles } from './styles'; // varsa stil dosyan
 
-export default function AddCityScreen() {
-  const navigation = useNavigation();
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Keyboard
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import cities from '../data/cities.json';
 
-  const handleSearch = () => {
-    console.log('searched');
-    navigation.navigate('CitiesWeather', { city: 'Istanbul' }); // örnek olarak
+export default function AddCityScreen({ navigation }) {
+  const [query, setQuery] = useState('');
+  const [filtered, setFiltered] = useState([]);
+
+  // query değiştikçe JSON dosyasını filtrele
+  useEffect(() => {
+    if (query.trim().length > 0) {
+      const q = query.trim().toLowerCase();
+      const matches = cities.filter((city) =>
+        city.toLowerCase().includes(q)
+      );
+      setFiltered(matches);
+    } else {
+      setFiltered([]);
+    }
+  }, [query]);
+
+  // Seçilen şehri kaydet ve hava durumu ekranına geç
+  const handleSelectCity = async (selectedCity) => {
+    try {
+      // 1) AsyncStorage'den mevcut şehirleri al
+      const existing = await AsyncStorage.getItem('cities');
+      const cityList = existing ? JSON.parse(existing) : [];
+
+      // 2) Eğer listede yoksa ekle
+      if (!cityList.includes(selectedCity)) {
+        await AsyncStorage.setItem(
+          'cities',
+          JSON.stringify([...cityList, selectedCity])
+        );
+      }
+
+      // 3) Klavyeyi kapat ve arayüzü temizle
+      Keyboard.dismiss();
+      setQuery('');
+      setFiltered([]);
+
+      // 4) Navigasyon: CitiesWeather ekranına city parametresi ile geç
+      navigation.navigate('CitiesWeather', { city: selectedCity });
+    } catch (e) {
+      console.error('Şehir seçme hatası', e);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Add Location</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter location"
+        value={query}
+        onChangeText={setQuery}
+        autoCorrect={false}
+        autoCapitalize="none"
+      />
 
-        <View style={styles.searchContainer}>
-          <Icon
-                      style={styles.icon}
-                      name='search'
-                      size={20}
-                      color='#517fa4'
-                      onPress={handleSearch} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter location"
-            placeholderTextColor="#aaa"
-          />
-        </View>
-      </ScrollView>
+      {filtered.length > 0 && (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item}
+          style={styles.list}
+          keyboardShouldPersistTaps="always"
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.itemContainer}
+              onPress={() => handleSelectCity(item)}
+            >
+              <Text style={styles.itemText}>{item}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      
-    },
-    scrollContainer: {
-      flex:1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      
-    },
-    input: {
-      flex: 1,
-      height: 40,
-      fontSize: 16,
-    },
-    title: {
-      marginTop: 15,
-      paddingTop:15,
-      fontSize: 24,
-      marginBottom: 16,
-      fontWeight: 'bold',
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderColor: '#000',
-      borderWidth: 1,
-      borderRadius: 12,
-      backgroundColor: '#fff',  
-      paddingHorizontal: 12,
-    },
-    icon: {
-      opacity: 0.5,
-      marginRight: 18,
-      marginLeft: 8,
-    }
-  });
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  list: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 8,
+    maxHeight: 250,
+  },
+  itemContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  itemText: { fontSize: 16 },
+});
