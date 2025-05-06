@@ -12,30 +12,30 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function CitiesWeather({ route }) {
   const { city } = route.params;
-  const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+  const [weather, setWeather] = useState(null);//from api
+  const [loading, setLoading] = useState(true);//is it loading?
+  const navigation = useNavigation();// main navigation 
 
   useEffect(() => {
-    fetchWeather();
+    fetchWeather();//runs one time when we run app
   }, []);
 
   const fetchWeather = async () => {
     try {
-      const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY';
+      const API_KEY = 'myapikey'; //my own api key gonna add and update later
       const response = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&units=metric&appid=${API_KEY}`
       );
       const data = await response.json();
-      setWeather(data);
+      setWeather(data);//save the data to the state
     } catch (error) {
       console.error('Weather fetch error:', error);
     } finally {
-      setLoading(false);
+      setLoading(false);// loading is done!
     }
   };
 
-  if (loading) {
+  if (loading) {// show spinner if it loads
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" />
@@ -43,7 +43,7 @@ export default function CitiesWeather({ route }) {
     );
   }
 
-  if (!weather || weather.cod !== 200) {
+  if (!weather || weather.cod !== 200) {//for ex if city is wrong or internet is off it will show error message.
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Hava durumu yüklenemedi.</Text>
@@ -54,15 +54,16 @@ export default function CitiesWeather({ route }) {
     );
   }
 
-  const { main, weather: weatherDetails } = weather;
+  const { main, weather: weatherDetails } = weather; //ilk kısmı hava durumu varsa kullanıcıya gösteriyor ve durum detayını veriyor
+  // ikinci kısım yeni şehir ekleme kısmı. buradan add cityye yönlendirilecek.
   return (
     <View style={styles.container}>
       <Text style={styles.city}>{city}</Text>
       <Text style={styles.temp}>{main.temp}°C</Text>
       <Text style={styles.description}>{weatherDetails[0].description}</Text>
-
+      
       <TouchableOpacity onPress={() => navigation.navigate('AddCity')} style={styles.addButton}>
-        <Text style={styles.addButtonText}>+ Yeni Şehir Ekle</Text>
+        <Text style={styles.addButtonText}>+ Add City</Text>
       </TouchableOpacity>
     </View>
   );

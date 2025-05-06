@@ -1,5 +1,5 @@
-{
-  "cities": [
+
+  [
     "Adana",
     "Adıyaman",
     "Afyonkarahisar",
@@ -82,4 +82,3 @@
     "Yozgat",
     "Zonguldak"
   ]
-}
