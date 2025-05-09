@@ -82,6 +82,13 @@ export default function AddCityScreen({ navigation }) {
           )}
         />
       )}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ManageCities')}
+        style={styles.manageButton}
+      >
+        <Text style={styles.manageButtonText}>Manage Cities</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
@@ -110,4 +117,16 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
   },
   itemText: { fontSize: 16 },
+  manageButton: {
+    marginTop: 10,
+    backgroundColor: '#517fa4',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+
+  manageButtonText: {
+    color: 'white',
+    fontSize: 16,
+  }
 });
